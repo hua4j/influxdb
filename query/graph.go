@@ -141,6 +141,9 @@ type Node interface {
 	// current configuration of the node.
 	Description() string
 
+	// Cost returns the costs associated with this node.
+	Cost() Cost
+
 	// Inputs returns the Edges that produce Iterators that will be consumed by
 	// this Node.
 	Inputs() []*ReadEdge
@@ -238,6 +241,10 @@ func (ic *IteratorCreator) Description() string {
 	return buf.String()
 }
 
+func (ic *IteratorCreator) Cost() Cost {
+	return Cost{}
+}
+
 func (ic *IteratorCreator) Inputs() []*ReadEdge { return nil }
 func (ic *IteratorCreator) Outputs() []*WriteEdge {
 	if ic.Output != nil {
@@ -295,6 +302,10 @@ func (m *Merge) Description() string {
 		return fmt.Sprintf("sorted merge of %d nodes", len(m.InputNodes))
 	}
 	return fmt.Sprintf("merge of %d nodes", len(m.InputNodes))
+}
+
+func (m *Merge) Cost() Cost {
+	return Cost{}
 }
 
 func (m *Merge) AddInput(n Node) *WriteEdge {
@@ -409,6 +420,10 @@ func (c *FunctionCall) Description() string {
 	return buf.String()
 }
 
+func (c *FunctionCall) Cost() Cost {
+	return Cost{}
+}
+
 func (c *FunctionCall) Inputs() []*ReadEdge   { return []*ReadEdge{c.Input} }
 func (c *FunctionCall) Outputs() []*WriteEdge { return []*WriteEdge{c.Output} }
 
@@ -477,6 +492,8 @@ func (c *FunctionCall) ValidateInputTypes() error {
 	return nil
 }
 
+var _ Node = &Median{}
+
 type Median struct {
 	Dimensions *Dimensions
 	GroupBy    *Dimensions
@@ -489,6 +506,10 @@ type Median struct {
 
 func (m *Median) Description() string {
 	return "median()"
+}
+
+func (m *Median) Cost() Cost {
+	return Cost{}
 }
 
 func (m *Median) Inputs() []*ReadEdge   { return []*ReadEdge{m.Input} }
@@ -538,6 +559,8 @@ func (m *Median) ValidateInputTypes() error {
 	return nil
 }
 
+var _ Node = &Mode{}
+
 type Mode struct {
 	Dimensions *Dimensions
 	GroupBy    *Dimensions
@@ -550,6 +573,10 @@ type Mode struct {
 
 func (m *Mode) Description() string {
 	return "mode()"
+}
+
+func (m *Mode) Cost() Cost {
+	return Cost{}
 }
 
 func (m *Mode) Inputs() []*ReadEdge   { return []*ReadEdge{m.Input} }
@@ -586,6 +613,8 @@ func (m *Mode) Type() influxql.DataType {
 	return influxql.Unknown
 }
 
+var _ Node = &Stddev{}
+
 type Stddev struct {
 	Dimensions *Dimensions
 	GroupBy    *Dimensions
@@ -598,6 +627,10 @@ type Stddev struct {
 
 func (s *Stddev) Description() string {
 	return "stddev()"
+}
+
+func (s *Stddev) Cost() Cost {
+	return Cost{}
 }
 
 func (s *Stddev) Inputs() []*ReadEdge   { return []*ReadEdge{s.Input} }
@@ -634,6 +667,8 @@ func (s *Stddev) Type() influxql.DataType {
 	return influxql.Unknown
 }
 
+var _ Node = &Spread{}
+
 type Spread struct {
 	Dimensions *Dimensions
 	GroupBy    *Dimensions
@@ -646,6 +681,10 @@ type Spread struct {
 
 func (s *Spread) Description() string {
 	return "spread()"
+}
+
+func (s *Spread) Cost() Cost {
+	return Cost{}
 }
 
 func (s *Spread) Inputs() []*ReadEdge   { return []*ReadEdge{s.Input} }
@@ -682,6 +721,8 @@ func (s *Spread) Type() influxql.DataType {
 	return influxql.Unknown
 }
 
+var _ Node = &Percentile{}
+
 type Percentile struct {
 	Number     float64
 	Dimensions *Dimensions
@@ -695,6 +736,10 @@ type Percentile struct {
 
 func (p *Percentile) Description() string {
 	return fmt.Sprintf("percentile(%2.f)", p.Number)
+}
+
+func (p *Percentile) Cost() Cost {
+	return Cost{}
 }
 
 func (p *Percentile) Inputs() []*ReadEdge   { return []*ReadEdge{p.Input} }
@@ -732,6 +777,8 @@ func (p *Percentile) Type() influxql.DataType {
 	return influxql.Unknown
 }
 
+var _ Node = &Sample{}
+
 type Sample struct {
 	N          int
 	Dimensions *Dimensions
@@ -745,6 +792,10 @@ type Sample struct {
 
 func (s *Sample) Description() string {
 	return fmt.Sprintf("sample(%d)", s.N)
+}
+
+func (s *Sample) Cost() Cost {
+	return Cost{}
 }
 
 func (s *Sample) Inputs() []*ReadEdge   { return []*ReadEdge{s.Input} }
@@ -781,6 +832,8 @@ func (s *Sample) Type() influxql.DataType {
 	return influxql.Unknown
 }
 
+var _ Node = &Derivative{}
+
 type Derivative struct {
 	Duration      time.Duration
 	IsNonNegative bool
@@ -796,6 +849,10 @@ func (d *Derivative) Description() string {
 		return fmt.Sprintf("non_negative_derivative(%s)", influxql.FormatDuration(d.Duration))
 	}
 	return fmt.Sprintf("derivative(%s)", influxql.FormatDuration(d.Duration))
+}
+
+func (d *Derivative) Cost() Cost {
+	return Cost{}
 }
 
 func (d *Derivative) Inputs() []*ReadEdge   { return []*ReadEdge{d.Input} }
@@ -828,6 +885,8 @@ func (d *Derivative) Type() influxql.DataType {
 	return influxql.Float
 }
 
+var _ Node = &Elapsed{}
+
 type Elapsed struct {
 	Duration   time.Duration
 	Dimensions *Dimensions
@@ -839,6 +898,10 @@ type Elapsed struct {
 
 func (e *Elapsed) Description() string {
 	return fmt.Sprintf("elapsed(%s)", influxql.FormatDuration(e.Duration))
+}
+
+func (e *Elapsed) Cost() Cost {
+	return Cost{}
 }
 
 func (e *Elapsed) Inputs() []*ReadEdge   { return []*ReadEdge{e.Input} }
@@ -871,6 +934,8 @@ func (e *Elapsed) Type() influxql.DataType {
 	return influxql.Integer
 }
 
+var _ Node = &Difference{}
+
 type Difference struct {
 	IsNonNegative bool
 	Dimensions    *Dimensions
@@ -885,6 +950,10 @@ func (d *Difference) Description() string {
 		return "non_negative_difference()"
 	}
 	return "difference()"
+}
+
+func (d *Difference) Cost() Cost {
+	return Cost{}
 }
 
 func (d *Difference) Inputs() []*ReadEdge   { return []*ReadEdge{d.Input} }
@@ -919,6 +988,8 @@ func (d *Difference) Type() influxql.DataType {
 	return influxql.Unknown
 }
 
+var _ Node = &MovingAverage{}
+
 type MovingAverage struct {
 	WindowSize int
 	Dimensions *Dimensions
@@ -930,6 +1001,10 @@ type MovingAverage struct {
 
 func (m *MovingAverage) Description() string {
 	return fmt.Sprintf("moving_average(%d)", m.WindowSize)
+}
+
+func (m *MovingAverage) Cost() Cost {
+	return Cost{}
 }
 
 func (m *MovingAverage) Inputs() []*ReadEdge   { return []*ReadEdge{m.Input} }
@@ -961,6 +1036,8 @@ func (m *MovingAverage) Type() influxql.DataType {
 	return influxql.Float
 }
 
+var _ Node = &CumulativeSum{}
+
 type CumulativeSum struct {
 	Dimensions *Dimensions
 	GroupBy    *Dimensions
@@ -971,6 +1048,10 @@ type CumulativeSum struct {
 
 func (c *CumulativeSum) Description() string {
 	return "cumulative_sum()"
+}
+
+func (c *CumulativeSum) Cost() Cost {
+	return Cost{}
 }
 
 func (c *CumulativeSum) Inputs() []*ReadEdge   { return []*ReadEdge{c.Input} }
@@ -1005,6 +1086,8 @@ func (c *CumulativeSum) Type() influxql.DataType {
 	return influxql.Unknown
 }
 
+var _ Node = &Integral{}
+
 type Integral struct {
 	Duration   time.Duration
 	Dimensions *Dimensions
@@ -1018,6 +1101,10 @@ type Integral struct {
 
 func (i *Integral) Description() string {
 	return fmt.Sprintf("integral(%s)", influxql.FormatDuration(i.Duration))
+}
+
+func (i *Integral) Cost() Cost {
+	return Cost{}
 }
 
 func (i *Integral) Inputs() []*ReadEdge   { return []*ReadEdge{i.Input} }
@@ -1052,6 +1139,8 @@ func (i *Integral) Type() influxql.DataType {
 	return influxql.Float
 }
 
+var _ Node = &HoltWinters{}
+
 type HoltWinters struct {
 	N, S       int
 	WithFit    bool
@@ -1068,6 +1157,10 @@ func (hw *HoltWinters) Description() string {
 		return fmt.Sprintf("holt_winters_with_fit(%d, %d)", hw.N, hw.S)
 	}
 	return fmt.Sprintf("holt_winters(%d, %d)", hw.N, hw.S)
+}
+
+func (hw *HoltWinters) Cost() Cost {
+	return Cost{}
 }
 
 func (hw *HoltWinters) Inputs() []*ReadEdge   { return []*ReadEdge{hw.Input} }
@@ -1099,6 +1192,8 @@ func (hw *HoltWinters) Type() influxql.DataType {
 	return influxql.Float
 }
 
+var _ Node = &Distinct{}
+
 type Distinct struct {
 	Dimensions *Dimensions
 	GroupBy    *Dimensions
@@ -1111,6 +1206,10 @@ type Distinct struct {
 
 func (d *Distinct) Description() string {
 	return "find distinct values"
+}
+
+func (d *Distinct) Cost() Cost {
+	return Cost{}
 }
 
 func (d *Distinct) Inputs() []*ReadEdge   { return []*ReadEdge{d.Input} }
@@ -1141,6 +1240,8 @@ func (d *Distinct) Type() influxql.DataType {
 	return influxql.Unknown
 }
 
+var _ Node = &TopBottomSelector{}
+
 type TopBottomSelector struct {
 	Name       string
 	Limit      int
@@ -1156,6 +1257,10 @@ type TopBottomSelector struct {
 
 func (s *TopBottomSelector) Description() string {
 	return fmt.Sprintf("%s(%d)", s.Name, s.Limit)
+}
+
+func (s *TopBottomSelector) Cost() Cost {
+	return Cost{}
 }
 
 func (s *TopBottomSelector) Inputs() []*ReadEdge   { return []*ReadEdge{s.Input} }
@@ -1198,6 +1303,8 @@ func (s *TopBottomSelector) Type() influxql.DataType {
 	return influxql.Unknown
 }
 
+var _ Node = &AuxiliaryFields{}
+
 type AuxiliaryFields struct {
 	Aux        []influxql.VarRef
 	Dimensions *Dimensions
@@ -1209,6 +1316,10 @@ type AuxiliaryFields struct {
 
 func (c *AuxiliaryFields) Description() string {
 	return "access auxiliary fields"
+}
+
+func (c *AuxiliaryFields) Cost() Cost {
+	return Cost{}
 }
 
 func (c *AuxiliaryFields) Inputs() []*ReadEdge { return []*ReadEdge{c.Input} }
@@ -1372,6 +1483,10 @@ func (m *IteratorMapper) Description() string {
 	return "map the results of the subquery"
 }
 
+func (m *IteratorMapper) Cost() Cost {
+	return Cost{}
+}
+
 func (m *IteratorMapper) Inputs() []*ReadEdge   { return []*ReadEdge{m.Input} }
 func (m *IteratorMapper) Outputs() []*WriteEdge { return m.outputs }
 
@@ -1460,6 +1575,10 @@ func (f *AuxiliaryField) Description() string {
 	return f.Ref.String()
 }
 
+func (f *AuxiliaryField) Cost() Cost {
+	return Cost{}
+}
+
 func (f *AuxiliaryField) Inputs() []*ReadEdge {
 	return []*ReadEdge{f.Input}
 }
@@ -1491,6 +1610,10 @@ type BinaryExpr struct {
 
 func (c *BinaryExpr) Description() string {
 	return c.Desc
+}
+
+func (c *BinaryExpr) Cost() Cost {
+	return Cost{}
 }
 
 func (c *BinaryExpr) Inputs() []*ReadEdge   { return []*ReadEdge{c.LHS, c.RHS} }
@@ -1541,6 +1664,10 @@ func (c *LHSBinaryExpr) Description() string {
 	return c.Desc
 }
 
+func (c *LHSBinaryExpr) Cost() Cost {
+	return Cost{}
+}
+
 func (c *LHSBinaryExpr) Inputs() []*ReadEdge   { return []*ReadEdge{c.LHS} }
 func (c *LHSBinaryExpr) Outputs() []*WriteEdge { return []*WriteEdge{c.Output} }
 
@@ -1575,6 +1702,10 @@ func (c *RHSBinaryExpr) Description() string {
 	return c.Desc
 }
 
+func (c *RHSBinaryExpr) Cost() Cost {
+	return Cost{}
+}
+
 func (c *RHSBinaryExpr) Inputs() []*ReadEdge   { return []*ReadEdge{c.RHS} }
 func (c *RHSBinaryExpr) Outputs() []*WriteEdge { return []*WriteEdge{c.Output} }
 
@@ -1607,6 +1738,10 @@ type Interval struct {
 
 func (i *Interval) Description() string {
 	return fmt.Sprintf("normalize time values")
+}
+
+func (i *Interval) Cost() Cost {
+	return Cost{}
 }
 
 func (i *Interval) Inputs() []*ReadEdge   { return []*ReadEdge{i.Input} }
@@ -1654,6 +1789,10 @@ func (c *Limit) Description() string {
 		return fmt.Sprintf("offset %d", c.Offset)
 	}
 	return "limit 0/offset 0"
+}
+
+func (c *Limit) Cost() Cost {
+	return Cost{}
 }
 
 func (c *Limit) Inputs() []*ReadEdge   { return []*ReadEdge{c.Input} }
@@ -1712,6 +1851,10 @@ func (f *Fill) Description() string {
 	return buf.String()
 }
 
+func (f *Fill) Cost() Cost {
+	return Cost{}
+}
+
 func (f *Fill) Inputs() []*ReadEdge   { return []*ReadEdge{f.Input} }
 func (f *Fill) Outputs() []*WriteEdge { return []*WriteEdge{f.Output} }
 
@@ -1758,6 +1901,10 @@ func (d *Dedupe) Description() string {
 	return "dedupe points"
 }
 
+func (d *Dedupe) Cost() Cost {
+	return Cost{}
+}
+
 func (d *Dedupe) Inputs() []*ReadEdge   { return []*ReadEdge{d.Input} }
 func (d *Dedupe) Outputs() []*WriteEdge { return []*WriteEdge{d.Output} }
 
@@ -1797,6 +1944,7 @@ func (n *Nil) Description() string {
 	return "<nil>"
 }
 
+func (n *Nil) Cost() Cost            { return Cost{} }
 func (n *Nil) Inputs() []*ReadEdge   { return nil }
 func (n *Nil) Outputs() []*WriteEdge { return []*WriteEdge{n.Output} }
 
