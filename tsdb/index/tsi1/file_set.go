@@ -787,10 +787,12 @@ func (fs *FileSet) seriesByExprIterator(name []byte, expr influxql.Expr, mf *tsd
 
 			// Intersect iterators if expression is "AND".
 			if expr.Op == influxql.AND {
+				fmt.Println("INTERSECTING")
 				return IntersectSeriesIterators(litr, ritr), nil
 			}
 
 			// Union iterators if expression is "OR".
+			fmt.Println("UNIONING")
 			return UnionSeriesIterators(litr, ritr), nil
 
 		default:

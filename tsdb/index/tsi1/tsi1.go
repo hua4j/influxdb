@@ -489,6 +489,16 @@ type seriesIntersectIterator struct {
 // Next returns the next element which occurs in both iterators.
 func (itr *seriesIntersectIterator) Next() (e SeriesElem) {
 	for {
+		itr.buf[0] = itr.itrs[0].Next()
+		itr.buf[1] = itr.itrs[1].Next()
+		fmt.Println(itr.buf[0], "SECOND IS: ", itr.buf[1])
+
+		if itr.buf[0] == nil && itr.buf[1] == nil {
+			break
+		}
+	}
+
+	for {
 		// Fill buffers.
 		if itr.buf[0] == nil {
 			itr.buf[0] = itr.itrs[0].Next()
@@ -504,13 +514,15 @@ func (itr *seriesIntersectIterator) Next() (e SeriesElem) {
 
 		// Skip if both series are not equal.
 		if cmp := CompareSeriesElem(itr.buf[0], itr.buf[1]); cmp == -1 {
+			fmt.Println("first element", itr.buf[0], "before second ", itr.buf[1])
 			itr.buf[0] = nil
 			continue
 		} else if cmp == 1 {
+			fmt.Println("first element", itr.buf[0], "AFTER second ", itr.buf[1])
 			itr.buf[1] = nil
 			continue
 		}
-
+		fmt.Println("merging together ", itr.buf[0])
 		// Merge series together if equal.
 		itr.e.SeriesElem = itr.buf[0]
 
@@ -530,6 +542,7 @@ func (itr *seriesIntersectIterator) Next() (e SeriesElem) {
 		}
 
 		itr.buf[0], itr.buf[1] = nil, nil
+		fmt.Printf("%#v\n", itr.e.SeriesElem)
 		return &itr.e
 	}
 }

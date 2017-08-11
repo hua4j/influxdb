@@ -1174,6 +1174,7 @@ func (itr *seriesPointIterator) Next() (*influxql.FloatPoint, error) {
 		}
 
 		// Convert to a key.
+		fmt.Printf("%p %s %s\n", itr, e.Name(), e.Tags())
 		key := string(models.MakeKey(e.Name(), e.Tags()))
 
 		// Write auxiliary fields.
